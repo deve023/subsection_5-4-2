@@ -90,7 +90,6 @@ bool codeMatchFrom( codeOrigin_t codeOrigin )
 
 //=====[Implementations of private functions]==================================
 
-// BLOQUEANTE - DV
 static bool codeMatch( char* codeToCompare )
 {
     int i;

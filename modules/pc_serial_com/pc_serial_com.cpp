@@ -39,6 +39,7 @@ char codeSequenceFromPcSerialCom[CODE_NUMBER_OF_KEYS];
 static pcSerialComMode_t pcSerialComMode = PC_SERIAL_COMMANDS;
 static bool codeComplete = false;
 static int numberOfCodeChars = 0;
+static int numberOfDateAndTimeChar = 0; // DV
 
 //=====[Declarations (prototypes) of private functions]========================
 
@@ -71,8 +72,6 @@ void pcSerialComInit()
 char pcSerialComCharRead()
 {
     char receivedChar = '\0';
-    /* No bloquea porque forzas que lea solo 1 char
-    y lo usas solo cuando sabes que hay algo para leer - DV*/
     if( uartUsb.readable() ) {
         uartUsb.read( &receivedChar, 1 );
     }
@@ -101,7 +100,7 @@ void pcSerialComUpdate()
                 pcSerialComSaveNewCodeUpdate( receivedChar );
             break;
             case PC_SERIAL_SET_DATE_AND_TIME //DV
-                //pcSerialComDateAndTimeUpdate(receivedChar);
+                pcSerialComDateAndTimeUpdate(receivedChar);
             break;
             default:
                 pcSerialComMode = PC_SERIAL_COMMANDS;
@@ -159,6 +158,38 @@ static void pcSerialComSaveNewCodeUpdate( char receivedChar )
     } 
 }
 
+// DV
+static void pcSerialComDateAndTimeUpdate(char receivedChar)
+{
+    static char newDateAndTime[DATE_AND_TIME_NUMBER_OF_CHARS];
+
+    newDateAndTime[numberOfDateAndTimeChar] = receivedChar;
+    pcSerialComStringWrite(receivedChar);
+    numberOfDateAndTimeChar++;
+    if(numberOfDateAndTimeChar >= DATE_AND_TIME_NUMBER_OF_CHARS) {
+        pcSerialComMode = PC_SERIAL_COMMANDS;
+        numberOfDateAndTimeChar = 0;
+        commandSetDateAndTime(newDateAndTime);
+        pcSerialComStringWrite("\r\n");
+        pcSerialComStringWrite("Date and time has been set\r\n");
+    } else if (numberOfDateAndTimeChar == 4) {
+        pcSerialComStringWrite("\r\n");
+        pcSerialComStringWrite("Type two digits for the current month (01-12): ");
+    } else if (numberOfDateAndTimeChar == 6){
+        pcSerialComStringWrite("\r\n");
+        pcSerialComStringWrite("Type two digits for the current day (01-31): ");
+    } else if (numberOfDateAndTimeChar == 8) {
+        pcSerialComStringWrite("\r\n");
+        pcSerialComStringWrite("Type two digits for the current hour (00-23): ");
+    } else if (numberOfDateAndTimeChar == 10) {
+        pcSerialComStringWrite("\r\n");
+        pcSerialComStringWrite("Type two digits for the current minutes (00-59): ");
+    } else if (numberOfDateAndTimeChar == 12){
+        pcSerialComStringWrite("\r\n");
+        pcSerialComStringWrite("Type two digits for the current seconds (00-59): ");
+    }
+}
+
 static void pcSerialComCommandUpdate( char receivedChar )
 {
     switch (receivedChar) {
@@ -169,7 +200,7 @@ static void pcSerialComCommandUpdate( char receivedChar )
         case '5': commandEnterNewCode(); break;
         case 'c': case 'C': commandShowCurrentTemperatureInCelsius(); break;
         case 'f': case 'F': commandShowCurrentTemperatureInFahrenheit(); break;
-        case 's': case 'S': commandSetDateAndTime(); break;
+        case 's': case 'S': commandEnterNewDateAndTime(); break; // DV
         case 't': case 'T': commandShowDateAndTime(); break;
         case 'e': case 'E': commandShowStoredEvents(); break;
         default: availableCommands(); break;
@@ -241,6 +272,15 @@ static void commandEnterNewCode()
 
 }
 
+// DV
+static void commandEnterNewDateAndTime()
+{
+    pcSerialComStringWrite("\r\nType four digits for the current year (YYYY): ");
+    numberOfDateAndTimeChar = 0;
+    pcSerialComMode = PC_SERIAL_SET_DATE_AND_TIME;
+
+}
+
 static void commandShowCurrentTemperatureInCelsius()
 {
     char str[100] = "";
@@ -257,17 +297,19 @@ static void commandShowCurrentTemperatureInFahrenheit()
     pcSerialComStringWrite( str );  
 }
 
-static void commandSetDateAndTime()
+//CODIGO BLOQUEANTE - DV
+static void commandSetDateAndTime(char dateAndTimeStr[])
 {
-    char year[5] = "";
-    char month[3] = "";
-    char day[3] = "";
-    char hour[3] = "";
-    char minute[3] = "";
-    char second[3] = "";
+    char year[5] = dateAndTimeStr.substr(0, 4);
+    char month[3] = dateAndTimeStr.substr(4, 2);
+    char day[3] = dateAndTimeStr.substr(6, 2);
+    char hour[3] = dateAndTimeStr.substr(8, 2);
+    char minute[3] = dateAndTimeStr.substr(10, 2);
+    char second[3] = dateAndTimeStr.substr(12, 2);
     
+    /* CODIGO BLOQUEANTE
     pcSerialComStringWrite("\r\nType four digits for the current year (YYYY): ");
-    pcSerialComStringRead( year, 4); //CODIGO BLOQUEANTE - DV
+    pcSerialComStringRead( year, 4);
     pcSerialComStringWrite("\r\n");
 
     pcSerialComStringWrite("Type two digits for the current month (01-12): ");
@@ -291,7 +333,7 @@ static void commandSetDateAndTime()
     pcSerialComStringWrite("\r\n");
     
     pcSerialComStringWrite("Date and time has been set\r\n");
-
+    */
     dateAndTimeWrite( atoi(year), atoi(month), atoi(day), 
         atoi(hour), atoi(minute), atoi(second) );
 }

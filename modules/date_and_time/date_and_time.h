@@ -5,6 +5,8 @@
 
 //=====[Declaration of public defines]=========================================
 
+#define DATE_AND_TIME_NUMBER_OF_CHARS 14
+
 //=====[Declaration of public data types]======================================
 
 //=====[Declarations (prototypes) of public functions]=========================
