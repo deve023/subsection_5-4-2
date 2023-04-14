@@ -74,7 +74,7 @@ int eventLogNumberOfStoredEvents()
 
 void eventLogRead( int index, char* str )
 {
-    str[0] = '\0';
+    str[0] = '\0'; //RAAAARO - DV
     strcat( str, "Event = " );
     strcat( str, arrayOfStoredEvents[index].typeOfEvent );
     strcat( str, "\r\nDate and Time = " );

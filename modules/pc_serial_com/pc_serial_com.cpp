@@ -21,6 +21,7 @@ typedef enum{
     PC_SERIAL_COMMANDS,
     PC_SERIAL_GET_CODE,
     PC_SERIAL_SAVE_NEW_CODE,
+    PC_SERIAL_SET_DATE_AND_TIME, // DV
 } pcSerialComMode_t;
 
 //=====[Declaration and initialization of public global objects]===============
@@ -70,6 +71,8 @@ void pcSerialComInit()
 char pcSerialComCharRead()
 {
     char receivedChar = '\0';
+    /* No bloquea porque forzas que lea solo 1 char
+    y lo usas solo cuando sabes que hay algo para leer - DV*/
     if( uartUsb.readable() ) {
         uartUsb.read( &receivedChar, 1 );
     }
@@ -96,6 +99,9 @@ void pcSerialComUpdate()
 
             case PC_SERIAL_SAVE_NEW_CODE:
                 pcSerialComSaveNewCodeUpdate( receivedChar );
+            break;
+            case PC_SERIAL_SET_DATE_AND_TIME //DV
+                //pcSerialComDateAndTimeUpdate(receivedChar);
             break;
             default:
                 pcSerialComMode = PC_SERIAL_COMMANDS;
@@ -261,7 +267,7 @@ static void commandSetDateAndTime()
     char second[3] = "";
     
     pcSerialComStringWrite("\r\nType four digits for the current year (YYYY): ");
-    pcSerialComStringRead( year, 4);
+    pcSerialComStringRead( year, 4); //CODIGO BLOQUEANTE - DV
     pcSerialComStringWrite("\r\n");
 
     pcSerialComStringWrite("Type two digits for the current month (01-12): ");

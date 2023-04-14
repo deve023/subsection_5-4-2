@@ -35,10 +35,11 @@ static void codeDeactivate();
 
 //=====[Implementations of public functions]===================================
 
+
 void codeWrite( char* newCodeSequence )
 {
     int i;
-    for (i = 0; i < CODE_NUMBER_OF_KEYS; i++) {
+    for (i = 0; i < CODE_NUMBER_OF_KEYS; i++) { 
         codeSequence[i] = newCodeSequence[i];
     }
 }
@@ -89,6 +90,7 @@ bool codeMatchFrom( codeOrigin_t codeOrigin )
 
 //=====[Implementations of private functions]==================================
 
+// BLOQUEANTE - DV
 static bool codeMatch( char* codeToCompare )
 {
     int i;
