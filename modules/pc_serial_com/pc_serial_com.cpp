@@ -12,6 +12,7 @@
 #include "temperature_sensor.h"
 #include "gas_sensor.h"
 #include "event_log.h"
+#include <string>
 
 //=====[Declaration of private defines]========================================
 
@@ -47,6 +48,7 @@ static void pcSerialComStringRead( char* str, int strLength );
 
 static void pcSerialComGetCodeUpdate( char receivedChar );
 static void pcSerialComSaveNewCodeUpdate( char receivedChar );
+static void pcSerialComDateAndTimeUpdate(char receivedChar);
 
 static void pcSerialComCommandUpdate( char receivedChar );
 
@@ -58,9 +60,10 @@ static void commandEnterCodeSequence();
 static void commandEnterNewCode();
 static void commandShowCurrentTemperatureInCelsius();
 static void commandShowCurrentTemperatureInFahrenheit();
-static void commandSetDateAndTime();
+static void commandSetDateAndTime(char []);
 static void commandShowDateAndTime();
 static void commandShowStoredEvents();
+static void commandEnterNewDateAndTime();
 
 //=====[Implementations of public functions]===================================
 
@@ -99,7 +102,7 @@ void pcSerialComUpdate()
             case PC_SERIAL_SAVE_NEW_CODE:
                 pcSerialComSaveNewCodeUpdate( receivedChar );
             break;
-            case PC_SERIAL_SET_DATE_AND_TIME //DV
+            case PC_SERIAL_SET_DATE_AND_TIME: //DV
                 pcSerialComDateAndTimeUpdate(receivedChar);
             break;
             default:
@@ -164,7 +167,7 @@ static void pcSerialComDateAndTimeUpdate(char receivedChar)
     static char newDateAndTime[DATE_AND_TIME_NUMBER_OF_CHARS];
 
     newDateAndTime[numberOfDateAndTimeChar] = receivedChar;
-    pcSerialComStringWrite(receivedChar);
+    //pcSerialComStringWrite(receivedChar);
     numberOfDateAndTimeChar++;
     if(numberOfDateAndTimeChar >= DATE_AND_TIME_NUMBER_OF_CHARS) {
         pcSerialComMode = PC_SERIAL_COMMANDS;
@@ -297,15 +300,33 @@ static void commandShowCurrentTemperatureInFahrenheit()
     pcSerialComStringWrite( str );  
 }
 
+
+
 //CODIGO BLOQUEANTE - DV
 static void commandSetDateAndTime(char dateAndTimeStr[])
 {
-    char year[5] = dateAndTimeStr.substr(0, 4);
-    char month[3] = dateAndTimeStr.substr(4, 2);
-    char day[3] = dateAndTimeStr.substr(6, 2);
-    char hour[3] = dateAndTimeStr.substr(8, 2);
-    char minute[3] = dateAndTimeStr.substr(10, 2);
-    char second[3] = dateAndTimeStr.substr(12, 2);
+
+    char year[4];
+    char month[2];
+    char day[2];
+    char hour[2];
+    char minute[2];
+    char second[2];
+
+    for(int i = 0; i < DATE_AND_TIME_NUMBER_OF_CHARS; i++) {
+        if(i < 4)
+            year[i] = dateAndTimeStr[i];
+        else if(i < 6)
+            month[i] = dateAndTimeStr[i];
+        else if(i < 8)
+            day[i] = dateAndTimeStr[i];
+        else if(i < 10)
+            hour[i] = dateAndTimeStr[i];
+        else if(i < 12)
+            minute[i] = dateAndTimeStr[i];
+        else
+            second[i] = dateAndTimeStr[i];
+    }
     
     /* CODIGO BLOQUEANTE
     pcSerialComStringWrite("\r\nType four digits for the current year (YYYY): ");
